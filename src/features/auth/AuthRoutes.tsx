@@ -1,8 +1,8 @@
 import Register from "./pages/Register"
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
-import Otp from "./pages/OTP";
 import NewCredentials from "./pages/NewCredentials";
+import Otp from "./pages/Otp";
 
 export const authRoutes = [
     {
