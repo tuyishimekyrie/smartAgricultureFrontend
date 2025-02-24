@@ -11,7 +11,11 @@ const router = createBrowserRouter([
     {
         path:"*",
         element:<ErrorPage/>
-    }
+    },{
+        future: {
+          v7_startTransition: true,
+        },
+      }
 ])
 
 export default router;

@@ -21,5 +21,10 @@ export const authRoutes = [
     },{
         path:"/auth/new-credentials",
         element:<NewCredentials/>
-    }
+    },
+    {
+        future: {
+          v7_startTransition: true,
+        },
+      }
 ]
