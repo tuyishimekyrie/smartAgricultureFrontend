@@ -20,7 +20,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <div
-      className={`min-h-screen py-4 bg-slate-100 transition-all duration-300 ${
+      className={`min-h-screen py-4 bg-slate-100/50 transition-all duration-300 ${
         isCollapsed ? 'w-20 px-2' : 'w-56 px-4'
       }`}
     >
