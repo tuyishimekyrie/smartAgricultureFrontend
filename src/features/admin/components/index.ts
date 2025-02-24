@@ -1,3 +1,5 @@
 export * from "./Sidebar"
 export * from "./Header"
 export * from "../constants/MenuItems"
+export {default as LineChart} from "./LineChart"
+export {default as SensorsProgress} from "./SensorsProgress"

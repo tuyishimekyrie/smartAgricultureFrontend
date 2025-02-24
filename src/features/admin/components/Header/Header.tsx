@@ -14,7 +14,7 @@ export const Header: FC<HeaderProps> = ({
   notificationCount = 0,
 }) => {
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4">
+    <header className="bg-slate-100/50 border-b border-gray-200 px-6 py-4">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-gray-800">{title}</h1>
         

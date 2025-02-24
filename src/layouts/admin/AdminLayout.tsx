@@ -3,23 +3,23 @@ import { Sidebar } from "../../features/admin/components/Sidebar";
 import { adminLayoutProps } from "./types";
 import profileImage from "../../assets/profile.jpg";
 
-const AdminLayout: React.FC<adminLayoutProps> = ({ children }) => {
+const AdminLayout: React.FC<adminLayoutProps> = ({ children, className }) => {
   function handleSettingsClick(): void {
     //
   }
 
   function handleNotificationsClick(): void {
-   //
+    //
   }
 
   function handleProfileClick(): void {
-   //
+    //
   }
 
   return (
-    <div className="flex">
+    <div className="flex overflow-hidden max-h-screen">
       <Sidebar />{" "}
-      <div className="w-full">
+      <div className="w-full overflow-y-auto">
         <Header
           title="Dashboard"
           profile={{
@@ -32,7 +32,7 @@ const AdminLayout: React.FC<adminLayoutProps> = ({ children }) => {
           onNotificationsClick={handleNotificationsClick}
           onProfileClick={handleProfileClick}
         />
-        <div>{children}</div>
+        <div className={className}>{children}</div>
       </div>
     </div>
   );
