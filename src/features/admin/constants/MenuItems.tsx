@@ -16,7 +16,7 @@ export const MENU_ITEMS = [
       id: 2,
       name: "Weather",
       icon: <TiWeatherCloudy className="w-6 h-6" />,
-      href: "/",
+      href: "/admin/weather",
     },
     {
       id: 3,
