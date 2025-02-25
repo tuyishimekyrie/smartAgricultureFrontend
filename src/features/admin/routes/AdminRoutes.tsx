@@ -1,4 +1,4 @@
-import { Home, Weather,Map } from "../pages/index";
+import { Home, Weather,Map,Sensors,Sensor } from "../pages/index";
 
 export const AdminRoutes = [
   {
@@ -15,6 +15,14 @@ export const AdminRoutes = [
       {
         path: "map",
         element: <Map/>
+      },
+      {
+        path:"sensor",
+        element:<Sensors/>
+      },
+      {
+        path:"sensor/:id",
+        element: <Sensor/>
       },
       {
         future: {

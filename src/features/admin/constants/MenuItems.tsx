@@ -28,7 +28,7 @@ export const MENU_ITEMS = [
       id: 4,
       name: "Sensor",
       icon: <MdSensors className="w-6 h-6" />,
-      href: "/",
+      href: "/admin/sensor",
     },
     {
       id: 5,
