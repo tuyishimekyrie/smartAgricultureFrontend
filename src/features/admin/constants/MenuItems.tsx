@@ -22,7 +22,7 @@ export const MENU_ITEMS = [
       id: 3,
       name: "Map",
       icon: <FaMapLocationDot className="w-6 h-6" />,
-      href: "/",
+      href: "/admin/map",
     },
     {
       id: 4,
