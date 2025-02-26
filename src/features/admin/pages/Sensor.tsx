@@ -1,9 +1,10 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { AdminLayout } from "../../../layouts/admin";
 import { useEffect, useState } from "react";
 import { FaBatteryThreeQuarters, FaThermometerHalf, FaTint, FaWalking } from "react-icons/fa";
 import { HiStatusOnline, HiStatusOffline } from "react-icons/hi";
 import { format } from "date-fns";
+import { RxArrowLeft } from "react-icons/rx";
 
 const sensors = [
   {
@@ -78,6 +79,7 @@ const Sensor = () => {
   const [sensorData, setSensorData] = useState<SensorProp[]>([]);
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
+  const navigate = useNavigate()
 
   useEffect(() => {
     // Simulate API call with a small delay
@@ -106,6 +108,10 @@ const Sensor = () => {
 
   return (
     <AdminLayout className="">
+        <div className="bg-gray-50 py-4 px-10 flex items-center space-x-2 hover:text-blue-600" onClick={() => navigate("/admin/sensor")}>
+        <RxArrowLeft />
+            <p className="text-slate-500 hover:text-blue-600">Back To Sensors</p>
+        </div>
       <div className="p-6 flex justify-center  bg-gray-50">
         {sensorData.length > 0 ? (
           sensorData.map((sensor) => (
