@@ -34,7 +34,7 @@ export const MENU_ITEMS = [
       id: 5,
       name: "users",
       icon: <FaUsers className="w-6 h-6" />,
-      href: "/",
+      href: "/admin/users",
     },
     {
       id: 6,
