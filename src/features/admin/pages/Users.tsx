@@ -6,6 +6,7 @@ import { usePagination } from "../hooks/usePagination";
 import { useSearch } from "../hooks/useSearch";
 import { ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import UserActions from "../components/UserActions";
+import { useNavigate } from "react-router-dom";
 
 export interface UserDataProp {
   id: number;
@@ -15,7 +16,7 @@ export interface UserDataProp {
   plotNo: string;
   role: string;
 }
-const usersData: UserDataProp[] = Array(12)
+ const usersData: UserDataProp[] = Array(12)
   .fill(null)
   .map((_, index) => ({
     id: index + 1,
@@ -35,11 +36,13 @@ const Users = () => {
     // Then paginate the filtered items
     const pagination = usePagination(filteredUsersList, itemsPerPage);
     const currentUsers = pagination.getCurrentItems();
+
+    const navigate  = useNavigate()
     
     // Reset to first page when search query changes
     useEffect(() => {
       pagination.setCurrentPage(1);
-    }, [searchQuery]);
+    }, [searchQuery,pagination]);
     
 
   return (
@@ -85,7 +88,7 @@ const Users = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {currentUsers.length > 0 ? (
                 currentUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
+                  <tr key={user.id} className="hover:bg-gray-50" onClick={() => navigate(`/admin/users/${user.id}`)}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">

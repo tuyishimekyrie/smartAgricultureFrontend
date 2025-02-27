@@ -1,4 +1,12 @@
-import { Home, Weather,Map,Sensors,Sensor,Users } from "../pages/index";
+import {
+  Home,
+  Weather,
+  Map,
+  Sensors,
+  Sensor,
+  Users,
+  User,
+} from "../pages/index";
 
 export const AdminRoutes = [
   {
@@ -14,25 +22,34 @@ export const AdminRoutes = [
       },
       {
         path: "map",
-        element: <Map/>
+        element: <Map />,
       },
       {
-        path:"sensor",
-        element:<Sensors/>
+        path: "sensor",
+        element: <Sensors />,
       },
       {
-        path:"sensor/:id",
-        element: <Sensor/>
+        path: "sensor/:id",
+        element: <Sensor />,
       },
       {
         path: "users",
-        element: <Users/>
+        children: [
+          {
+            path: '',
+            element: <Users />,
+          },
+          {
+            path: ":id",
+            element: <User />,
+          },
+        ],
       },
       {
         future: {
           v7_startTransition: true,
         },
-      }
+      },
     ],
   },
 ];
