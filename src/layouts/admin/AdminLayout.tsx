@@ -2,8 +2,10 @@ import { Header } from "../../features/admin/components";
 import { Sidebar } from "../../features/admin/components/Sidebar";
 import { adminLayoutProps } from "./types";
 import profileImage from "../../assets/profile.jpg";
+import { useNavigate } from "react-router-dom";
 
 const AdminLayout: React.FC<adminLayoutProps> = ({ children, className }) => {
+  const navigate = useNavigate();
   function handleSettingsClick(): void {
     //
   }
@@ -18,7 +20,7 @@ const AdminLayout: React.FC<adminLayoutProps> = ({ children, className }) => {
 
   return (
     <div className="flex overflow-hidden max-h-screen">
-      <Sidebar />{" "}
+      <Sidebar onLogout={() => navigate("/auth/login")}/>{" "}
       <div className="w-full overflow-y-auto">
         <Header
           title="Dashboard"

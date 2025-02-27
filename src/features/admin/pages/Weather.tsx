@@ -103,7 +103,7 @@ const Weather = () => {
       clearInterval(humidityInterval);
       clearInterval(windInterval);
     };
-  }, []);
+  }, [weatherData.data]);
 
   const getWeatherIcon = (code:number) => {
     if (code < 300) return <FaCloudRain className="text-blue-500 animate-bounce" />;

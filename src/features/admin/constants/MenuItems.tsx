@@ -40,6 +40,6 @@ export const MENU_ITEMS = [
       id: 6,
       name: "Settings",
       icon: <CiSettings className="w-6 h-6" />,
-      href: "/",
+      href: "/admin/settings",
     },
   ];
