@@ -25,12 +25,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       }`}
     >
       <div className="flex justify-between items-center">
-        <SiSmartthings className="w-12 h-12" />
+        <SiSmartthings className="w-12 h-12 text-green-600" />
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="p-1 rounded hover:bg-blue-100 transition-colors"
         >
-          <FiSidebar className="w-6 h-6 hover:text-blue-600" />
+          <FiSidebar className="w-6 h-6 hover:text-green-600" />
         </button>
       </div>
 

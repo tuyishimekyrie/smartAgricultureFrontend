@@ -6,6 +6,7 @@ import {
   Sensor,
   Users,
   User,
+  Settings,
 } from "../pages/index";
 
 export const AdminRoutes = [
@@ -44,6 +45,10 @@ export const AdminRoutes = [
             element: <User />,
           },
         ],
+      },
+      {
+        path: "settings",
+        element: <Settings/>
       },
       {
         future: {

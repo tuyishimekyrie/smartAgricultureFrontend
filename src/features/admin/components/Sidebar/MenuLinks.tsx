@@ -12,8 +12,8 @@ export const MenuLink: React.FC<MenuItemProps> = ({ item, isCollapsed }) => {
       className={() =>
         `flex items-center space-x-4 px-2 py-4 rounded-md transition-all ${
           isActive
-            ? "bg-blue-600 text-white"
-            : "hover:bg-blue-600 hover:text-white"
+            ? "bg-green-600 text-white"
+            : "hover:bg-green-600 hover:text-white"
         }`
       }
     >
