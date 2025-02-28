@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {  useState } from "react";
 import { AdminLayout } from "../../../layouts/admin";
 import profile from "../../../assets/profile.jpg";
 import { Camera, Save, User, Mail, Phone, AtSign, X, Check } from "lucide-react";
@@ -60,7 +60,7 @@ const Settings = () => {
     setIsEdited(false);
   };
 
-  return (
+    return (
     <AdminLayout className="p-6 bg-gray-100 min-h-screen">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Account Settings</h1>

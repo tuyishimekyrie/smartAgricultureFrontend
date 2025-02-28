@@ -18,7 +18,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     setIsCollapsed(width <= 624);
   }, [width]);
 
-  console.log(MENU_ITEMS)
 
   return (
     <div

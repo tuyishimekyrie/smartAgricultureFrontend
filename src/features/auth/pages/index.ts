@@ -1,0 +1,5 @@
+export {default as ForgotPassword} from "./ForgotPassword"
+export {default as Login} from "./Login"
+export {default as NewCredentials} from "./NewCredentials"
+export {default as Otp} from "./Otp"
+export  {default as Register} from "./Register"
