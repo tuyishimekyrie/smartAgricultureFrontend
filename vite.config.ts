@@ -13,9 +13,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api/weatherbit': {
-        target: 'https://api.weatherbit.io/v2.0',
+        target: 'https://api.weatherbit.io',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/weatherbit/, '')
+        rewrite: (path) => path.replace(/^\/api\/weatherbit/, '/v2.0')
       }
     }
   }

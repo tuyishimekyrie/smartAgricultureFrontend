@@ -1,5 +1,5 @@
 import ClientLayout from "@/layouts/client/ClientLayout";
-import  AllMap  from "../components/AllMap";
+import  {AllMap}  from "../components";
 
 
 const Map = () => {

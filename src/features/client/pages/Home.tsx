@@ -1,6 +1,6 @@
 import ClientLayout from "../../../layouts/client/ClientLayout";
-import LineChart from "../components/LineChart";
-import SensorsProgress from "../components/SensorsProgress";
+import {LineChart} from "../components";
+import {SensorsProgress} from "../components";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropletIcon, ThermometerIcon, SunIcon, LeafIcon } from "lucide-react";
