@@ -5,3 +5,7 @@ build
 .github
 *.md
 .env.local
+.gitignore
+README.md
+Dockerfile
+docker-compose.yml
