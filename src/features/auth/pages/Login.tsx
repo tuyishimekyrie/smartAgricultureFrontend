@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaEye, FaEyeSlash, FaLeaf, FaEnvelope, FaLock } from "react-icons/fa";
-import { FcGoogle } from "react-icons/fc";
 import image from "../../../assets/image.png";
 
 
@@ -177,20 +176,20 @@ const Login = () => {
                 Sign in
               </motion.button>
               
-              <div className="flex items-center">
+              {/* <div className="flex items-center">
                 <div className="flex-grow h-px bg-gray-200"></div>
                 <span className="px-4 text-sm text-gray-500">or continue with</span>
                 <div className="flex-grow h-px bg-gray-200"></div>
-              </div>
+              </div> */}
               
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="button"
                 className="w-full flex justify-center items-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-              >
-                <FcGoogle className="w-5 h-5 mr-2" />
-                <span>Sign in with Google</span>
+                onClick={() => navigate("/")}
+                >
+                <span>Go back to home</span>
               </motion.button>
             </div>
           </form>

@@ -68,10 +68,10 @@ const Home = () => {
                 transition={{ duration: 0.5, delay: 0.2 }}
                 className="hidden md:flex items-center space-x-8"
               >
-                <a href="#" className="text-white hover:text-green-400 transition-colors">About</a>
+                {/* <a href="#" className="text-white hover:text-green-400 transition-colors">About</a>
                 <a href="#" className="text-white hover:text-green-400 transition-colors">Services</a>
                 <a href="#" className="text-white hover:text-green-400 transition-colors">Products</a>
-                <a href="#" className="text-white hover:text-green-400 transition-colors">Contact</a>
+                <a href="#" className="text-white hover:text-green-400 transition-colors">Contact</a> */}
               </motion.nav>
               
               <motion.div
