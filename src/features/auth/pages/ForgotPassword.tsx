@@ -1,11 +1,33 @@
+import { useForm } from "react-hook-form";
 import image from "../../../assets/image.png";
 
 import { useNavigate } from "react-router-dom";
+import { api } from "@/lib/axiosInstance";
+import { toast, Toaster } from "sonner";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
+  const {register,handleSubmit} = useForm<{email:string}>();
+
+  const onSubmit = (data: { email: string }) => {
+    console.log(data);
+
+    api.post("api/user/forgot-password?username="+data.email).then((response) => {
+      console.log(response.data);
+      const token = response.data;
+      toast.success("OTP sent successfully!");
+      navigate("/auth/new-credentials?token="+token);
+    }).catch((error) => {
+      console.error("Error sending OTP:", error);
+      toast.error("Failed to send OTP. Please try again.");
+    }
+    );
+  };
+
+
   return (
     <div className="flex h-screen max-sm:w-full max-sm:items-center max-sm:justify-center">
+      <Toaster/>
       <div className="w-[50vw] max-sm:hidden">
         <img src={image} alt="image" className="h-full object-cover" />
       </div>
@@ -17,7 +39,7 @@ const ForgotPassword = () => {
             will send you the OTP.
           </p>
         </div>
-        <form action="" className="space-y-4 pt-10">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-10">
           <div className="flex flex-col gap-2">
             <label htmlFor="email">Email</label>
             <input
@@ -25,6 +47,7 @@ const ForgotPassword = () => {
               required
               placeholder="Type you email"
               className="border border-slate-300 px-2 py-2 rounded-md placeholder:text-gray-300"
+              {...register("email", { required: true })}
             />
           </div>
 
