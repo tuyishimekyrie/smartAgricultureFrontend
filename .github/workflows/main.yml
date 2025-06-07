@@ -1,62 +1,63 @@
 name: React CI/CD Pipeline
+
 on:
   push:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
-    
-# Prevent concurrent deploys to same branch
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: npm ci
-        # npm ci is preferred in CI environments over npm install
-        
-      - name: Lint code
+
+      - name: Run Linter
         run: npm run lint
-        
-    #   - name: Run tests
-    #     run: npm test -- --coverage
-    #     env:
-    #       CI: true
-          
-      - name: Build application
+
+
+      - name: Build Application
         run: npm run build
         env:
           CI: true
-          
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-files
           path: build/
           retention-days: 7
-          
+
   deploy:
-    name: Deploy
+    name: Deploy to Production
     needs: build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: https://example.com
+      url: https://smart-agriculture-frontend-seven.vercel.app/
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build-files
           path: build
+
+     
