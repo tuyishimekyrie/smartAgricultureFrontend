@@ -13,7 +13,7 @@ interface LoginFormData {
   password: string;
 }
 
-interface DecodedToken {
+export interface DecodedToken {
   email: string;
   exp: number;
   iat: number;
@@ -47,7 +47,7 @@ const Login = () => {
         const decode = jwtDecode<DecodedToken>(token);
         console.log("decoded", decode);
 
-        if (decode.role === "admin") navigate("/admin/dashboard");
+        if (decode.role === "ADMIN") navigate("/admin");
         else navigate("/client");
       })
       .catch((error) => {

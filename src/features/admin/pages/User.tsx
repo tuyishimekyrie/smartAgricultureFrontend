@@ -3,17 +3,9 @@ import { AdminLayout } from "../../../layouts/admin";
 import { UserDataProp } from "./Users";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Mail, MapPin, Phone, Calendar, Home, Shield, Edit, Trash2, MessageSquare } from "lucide-react";
+import { api } from "@/lib/axiosInstance";
 
-const usersData: UserDataProp[] = Array(20)
-  .fill(null)
-  .map((_, index) => ({
-    id: index + 1,
-    name: `User ${index + 1}`,
-    image: `https://i.pravatar.cc/150?img=${index + 1}`,
-    location: "Kigali",
-    plotNo: `12${index}`,
-    role: "User",
-  }));
+
 
 const User = () => {
   const [user, setUser] = useState<UserDataProp | null>(null);
@@ -21,17 +13,33 @@ const User = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // useEffect(() => {
+  //   setLoading(true);
+  //   if (id) {
+  //     // Simulate API fetch delay
+  //     setTimeout(() => {
+  //       const foundUser = user?.find((users) => users.id === parseInt(id));
+  //       setUser(foundUser || null);
+  //       setLoading(false);
+  //     }, 300);
+  //   }
+  // }, [id]);
+
   useEffect(() => {
-    setLoading(true);
-    if (id) {
-      // Simulate API fetch delay
-      setTimeout(() => {
-        const foundUser = usersData.find((user) => user.id === parseInt(id));
-        setUser(foundUser || null);
+    api.get(`/api/user/${id}`)
+      .then((response) => {
+        console.log(response.data);
+        setUser(response.data);
         setLoading(false);
-      }, 300);
-    }
-  }, [id]);
+      }
+      )
+      .catch((error) => {
+        console.error("Error fetching user:", error);
+        setUser(null);
+        setLoading(false);
+      }
+    );
+  })
 
   if (loading) {
     return (
@@ -63,18 +71,9 @@ const User = () => {
         <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left column - User Profile Card */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden p-6 flex flex-col items-center lg:sticky lg:top-6 self-start">
-            <div className="relative mb-6">
-              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md">
-                <img
-                  src={user.image}
-                  alt={user.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <span className="absolute bottom-3 right-3 h-4 w-4 rounded-full bg-green-500 border-2 border-white"></span>
-            </div>
+           
             
-            <h1 className="text-2xl font-bold text-gray-800 mb-1">{user.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-800 mb-1">{user.username}</h1>
             <p className="text-indigo-600 font-medium mb-4">{user.role}</p>
             
             <div className="flex items-center text-gray-500 mb-1">
@@ -89,7 +88,7 @@ const User = () => {
             
             <div className="flex items-center text-gray-500">
               <MapPin size={16} className="mr-2" />
-              <span>{user.location}</span>
+              <span>{user.email}</span>
             </div>
             
             <div className="w-full border-t border-gray-100 my-6"></div>
@@ -125,7 +124,7 @@ const User = () => {
                       </div>
                       <div>
                         <h3 className="text-sm font-medium text-gray-500">Plot Number</h3>
-                        <p className="text-lg font-semibold text-gray-800">{user.plotNo}</p>
+                        <p className="text-lg font-semibold text-gray-800">{user.status}</p>
                       </div>
                     </div>
                   </div>
@@ -137,7 +136,7 @@ const User = () => {
                       </div>
                       <div>
                         <h3 className="text-sm font-medium text-gray-500">Location</h3>
-                        <p className="text-lg font-semibold text-gray-800">{user.location}</p>
+                        <p className="text-lg font-semibold text-gray-800">{user.status}</p>
                       </div>
                     </div>
                   </div>

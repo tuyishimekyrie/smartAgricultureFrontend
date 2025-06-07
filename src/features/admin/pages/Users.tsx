@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AdminLayout } from "../../../layouts/admin";
 import PaginationButton from "../components/PaginationButton";
 import SearchBar from "../components/SearchBar";
@@ -6,46 +6,48 @@ import { usePagination } from "../hooks/usePagination";
 import { useSearch } from "../hooks/useSearch";
 import { ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import UserActions from "../components/UserActions";
+import { api } from "@/lib/axiosInstance";
+import { toast, Toaster } from "sonner";
 
 
 export interface UserDataProp {
   id: number;
-  name: string;
-  image: string;
-  location: string;
-  plotNo: string;
+  username: string;
+  email: string;
+  status: string;
   role: string;
 }
- const usersData: UserDataProp[] = Array(12)
-  .fill(null)
-  .map((_, index) => ({
-    id: index + 1,
-    name: "Kyrie Irving",
-    image: "https://i.pravatar.cc/150?img=" + (index + 1),
-    location: "Kigali",
-    plotNo: "123",
-    role: "User",
-  }));
+
 const Users = () => {
+  const [usersData, setUsersData] = useState<UserDataProp[]>([]);
     const itemsPerPage = 5;
-    const { searchQuery, setSearchQuery, filteredItems } = useSearch(usersData, ['name', 'location', 'role']);
+    const { searchQuery, setSearchQuery, filteredItems } = useSearch(usersData, ['username', 'email', 'role']);
     
-    // Get filtered items first
     const filteredUsersList = filteredItems();
-    
-    // Then paginate the filtered items
+
     const pagination = usePagination(filteredUsersList, itemsPerPage);
     const currentUsers = pagination.getCurrentItems();
 
-    
-    // Reset to first page when search query changes
+  
     useEffect(() => {
       pagination.setCurrentPage(1);
     }, [searchQuery,pagination]);
+
+    useEffect(() => {
+      api.get("api/user/all").then((response) => {
+        console.log(response.data);
+        setUsersData(response.data);
+        toast.success("Users fetched successfully!");
+      }).catch((error) => {
+        console.error("Error fetching users:", error);
+        toast.error("Failed to fetch users");
+      })
+    })
     
 
   return (
     <AdminLayout className="p-4">
+      <Toaster/>
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -71,7 +73,7 @@ const Users = () => {
                   ID
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Location
+                  email
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Plot No
@@ -91,15 +93,15 @@ const Users = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
-                          <img
+                          {/* <img
                             className="h-10 w-10 rounded-full object-cover"
                             src={user.image}
                             alt=""
-                          />
+                          /> */}
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {user.name}
+                            {user.username}
                           </div>
                         </div>
                       </div>
@@ -108,10 +110,10 @@ const Users = () => {
                       #{user.id}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.location}
+                      {user.email}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.plotNo}
+                      {user.status}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">

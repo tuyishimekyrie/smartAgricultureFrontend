@@ -1,36 +1,60 @@
-import { FcChargeBattery } from "react-icons/fc";
+// import { FcChargeBattery } from "react-icons/fc";
 import { AdminLayout } from "../../../layouts/admin";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { api } from "@/lib/axiosInstance";
+
+interface Sensor {
+  id: number;
+  location: string;
+  name: string;
+  sensorType: string;
+  username: string;
+  status:string
+}
 
 const Sensors = () => {
- const sensors = [
-    {
-      id: 1,
-      type: "Temperature",
-      date: "2024-02-25",
-      customerName: "John Doe",
-      status: "Active",
-      battery: "85%",
-    },
-    {
-      id: 2,
-      type: "Humidity",
-      date: "2024-02-24",
-      customerName: "Jane Smith",
-      status: "Inactive",
-      battery: "60%",
-    },
-    {
-      id: 3,
-      type: "Motion",
-      date: "2024-02-23",
-      customerName: "Alice Johnson",
-      status: "Active",
-      battery: "75%",
-    },
-  ];
+  //  const sensors = [
+  //     {
+  //       id: 1,
+  //       type: "Temperature",
+  //       date: "2024-02-25",
+  //       customerName: "John Doe",
+  //       status: "Active",
+  //       battery: "85%",
+  //     },
+  //     {
+  //       id: 2,
+  //       type: "Humidity",
+  //       date: "2024-02-24",
+  //       customerName: "Jane Smith",
+  //       status: "Inactive",
+  //       battery: "60%",
+  //     },
+  //     {
+  //       id: 3,
+  //       type: "Motion",
+  //       date: "2024-02-23",
+  //       customerName: "Alice Johnson",
+  //       status: "Active",
+  //       battery: "75%",
+  //     },
+  //   ];
 
   const navigate = useNavigate();
+  const [sensors, setSensors] = useState<Sensor[]>([]);
+
+  useEffect(() => {
+    api
+      .get("/api/sensor/all")
+      .then((response) => {
+        console.log(response.data);
+        setSensors(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching sensors:", error);
+      });
+  });
 
   return (
     <AdminLayout className="">
@@ -42,10 +66,12 @@ const Sensors = () => {
               <tr className="bg-gray-100 text-gray-700 text-left">
                 <th className="p-3 border-b">Type</th>
                 <th className="p-3 border-b">ID</th>
-                <th className="p-3 border-b">Date</th>
+                {/* <th className="p-3 border-b">Date</th> */}
                 <th className="p-3 border-b">Customer Name</th>
+                <th className="p-3 border-b">Location</th>
                 <th className="p-3 border-b">Status</th>
-                <th className="p-3 border-b">Battery</th>
+                {/* <th className="p-3 border-b">Status</th> */}
+                {/* <th className="p-3 border-b">Battery</th> */}
               </tr>
             </thead>
             <tbody>
@@ -57,10 +83,12 @@ const Sensors = () => {
                     index % 2 === 0 ? "bg-gray-50" : "bg-white"
                   } hover:bg-gray-100 transition`}
                 >
-                  <td className="p-3">{sensor.type}</td>
+                  <td className="p-3">{sensor.sensorType}</td>
                   <td className="p-3">{sensor.id}</td>
-                  <td className="p-3">{sensor.date}</td>
-                  <td className="p-3">{sensor.customerName}</td>
+                  {/* <td className="p-3">{sensor.date}</td> */}
+                  <td className="p-3">{sensor.username}</td>
+                  <td className="p-3">{sensor.location}</td>
+
                   <td className="p-3">
                     <span
                       className={`px-3 py-1 text-sm font-medium text-white rounded-full ${
@@ -72,10 +100,10 @@ const Sensors = () => {
                       {sensor.status}
                     </span>
                   </td>
-                  <td className="p-3 flex items-center space-x-2">
+                  {/* <td className="p-3 flex items-center space-x-2">
                     <FcChargeBattery className="text-xl" />
                     <span>{sensor.battery}</span>
-                  </td>
+                  </td> */}
                 </tr>
               ))}
             </tbody>
