@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useCallback } from "react";
-import { FcChargeBattery } from "react-icons/fc";
+// import { FcChargeBattery } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { toast, Toaster } from "sonner";
@@ -34,14 +35,14 @@ interface ApiResponse<T> {
   message: string;
   errorCode: string | null;
   data: T | null;
-  details: any;
+  details: unknown;
 }
 
-interface ApiError {
-  message: string;
-  status?: number;
-  errorCode?: string;
-}
+// interface ApiError {
+//   message: string;
+//   status?: number;
+//   errorCode?: string;
+// }
 
 // ============================================================================
 // Skeleton Components
@@ -219,7 +220,7 @@ const useSensors = (userId: string | null) => {
         description: `Successfully loaded sensor data for your account`
       });
       
-    } catch (error: any) {
+    } catch (error:any) {
       const errorMessage = error.response?.data?.message || 
                           error.response?.data?.details ||
                           error.message || 
@@ -355,7 +356,7 @@ const Sensors: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {sensors.map((sensor, index) => (
+                {sensors.map((sensor) => (
                   <tr
                     key={sensor.id}
                     onClick={() => handleSensorClick(sensor.id)}

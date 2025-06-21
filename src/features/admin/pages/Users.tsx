@@ -217,7 +217,7 @@ const Users = () => {
   // Reset pagination when search changes
   useEffect(() => {
     pagination.setCurrentPage(1);
-  }, [searchQuery, pagination.setCurrentPage]);
+  }, [searchQuery, pagination.setCurrentPage,pagination]);
 
   // Handler for search with debouncing would be better, but keeping simple for now
   const handleSearchChange = useCallback((query: string) => {
