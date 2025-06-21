@@ -5,7 +5,6 @@ export const usePagination = <T,>(items: T[], itemsPerPage: number) => {
     const totalItems = items.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     
-    // Get current page items
     const getCurrentItems = () => {
       const startIndex = (currentPage - 1) * itemsPerPage;
       return items.slice(startIndex, startIndex + itemsPerPage);

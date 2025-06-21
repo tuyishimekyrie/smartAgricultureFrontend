@@ -11,11 +11,11 @@ const UserActions = ({ userId }: { userId: number }) => {
       label: "View Details",
       onClick: () => navigate(`/admin/users/${userId}`),
     },
-    { label: "Edit User", onClick: () => console.log(`Edit user ${userId}`) },
-    {
-      label: "Delete User",
-      onClick: () => console.log(`Delete user ${userId}`),
-    },
+    // { label: "Edit User", onClick: () => console.log(`Edit user ${userId}`) },
+    // {
+    //   label: "Delete User",
+    //   onClick: () => console.log(`Delete user ${userId}`),
+    // },
   ];
 
   return (

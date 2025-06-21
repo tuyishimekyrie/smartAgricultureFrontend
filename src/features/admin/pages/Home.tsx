@@ -15,12 +15,12 @@ const Home: React.FC<HomeProps> = () => {
         <p className="text-sm text-gray-600">Sensors Dashboard</p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-4">
           <LineChart className="w-full h-full min-h-[400px]" />
         </div>
 
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-2">
           <SensorsProgress />
         </div>
       </div>

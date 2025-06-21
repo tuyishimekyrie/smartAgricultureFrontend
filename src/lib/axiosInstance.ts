@@ -1,11 +1,12 @@
 import axios from 'axios';
+import getToken from './getToken';
 
 const axiosInstance = () => {
     const instance = axios.create({
         baseURL: import.meta.env.VITE_api_url,
         headers: {
         'Content-Type': 'application/json',
-        "Authorization": `Bearer ${localStorage.getItem('token') || ''}`,
+        "Authorization": `Bearer ${getToken('token')}`,
         },
     });
     

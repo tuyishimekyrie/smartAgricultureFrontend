@@ -4,9 +4,10 @@ import { motion } from "framer-motion";
 import { FaEye, FaEyeSlash, FaLeaf, FaEnvelope, FaLock } from "react-icons/fa";
 import image from "../../../assets/image.png";
 import { useForm } from "react-hook-form";
-import { api } from "@/lib/axiosInstance";
 import { jwtDecode } from "jwt-decode";
-import { toast, Toaster } from "sonner";
+// import { toast, Toaster } from "sonner";
+import {ToastContainer,toast} from "react-toastify";
+import axios from "axios";
 
 interface LoginFormData {
   email: string;
@@ -22,43 +23,56 @@ export interface DecodedToken {
   role: string;
   sub: string;
 }
+
+const API_URL = import.meta.env.VITE_api_url;
+
 const Login = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit } = useForm<LoginFormData>();
-  const [loading,setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const onSubmit = (data: LoginFormData) => {
+  const onSubmit = async (data: LoginFormData) => {
     console.log("Form submitted with data:", data);
     setLoading(true);
-    api
-      .post("api/auth/login", data)
+    await axios
+      .post(`${API_URL}/api/auth/login`, data)
       .then((response) => {
-        console.log("Login successful:", response.data);
-        toast.success("Login successful!");
+        if (response.data.status === "success") {
+          console.log("Login successful:", response.data);
+          toast.success("Login successful!");
 
-        const token = response.data.token;
-        localStorage.setItem("token", token);
+          const token = response.data.data.token;
+          console.log("Token received:", token);
+          localStorage.setItem("token", token);
 
-        const decode = jwtDecode<DecodedToken>(token);
-        console.log("decoded", decode);
+          const decode = jwtDecode<DecodedToken>(token);
+          console.log("decoded", decode);
 
-        if (decode.role === "ADMIN") navigate("/admin");
-        else navigate("/client");
+          if (decode.role === "ADMIN") navigate("/admin");
+          else navigate("/client");
+        } else {
+          console.error("Login failed:", response.data.message);
+          toast.error(
+            response.data.message || "Login failed. Please try again."
+          );
+        }
       })
       .catch((error) => {
         console.error("Login failed:", error);
         toast.error("Login failed. Please check your credentials.");
-      }).finally(() => setLoading(false));
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
     <div className="flex h-screen font-plus bg-gray-50">
-      <Toaster />
+      {/* <Toaster /> */}
+      <ToastContainer/>
       {/* Left side - Image with overlay */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
@@ -234,7 +248,7 @@ const Login = () => {
                 disabled={loading}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
               >
-                {loading ? "submitting..." :"Sign in"}
+                {loading ? "submitting..." : "Sign in"}
               </motion.button>
 
               {/* <div className="flex items-center">

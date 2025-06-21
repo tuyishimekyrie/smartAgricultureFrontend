@@ -33,7 +33,7 @@ const AdminLayout: React.FC<adminLayoutProps> = ({ children, className }) => {
     }
   },[]);
   return (
-    <div className="flex overflow-hidden max-h-screen">
+    <div className="flex overflow-hidden">
       <Sidebar onLogout={() => navigate("/auth/login")} />{" "}
       <div className="w-full overflow-y-auto">
         <Header

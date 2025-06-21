@@ -5,25 +5,11 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Mail, MapPin, Phone, Calendar, Home, Shield, Edit, Trash2, MessageSquare } from "lucide-react";
 import { api } from "@/lib/axiosInstance";
 
-
-
 const User = () => {
   const [user, setUser] = useState<UserDataProp | null>(null);
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
   const navigate = useNavigate();
-
-  // useEffect(() => {
-  //   setLoading(true);
-  //   if (id) {
-  //     // Simulate API fetch delay
-  //     setTimeout(() => {
-  //       const foundUser = user?.find((users) => users.id === parseInt(id));
-  //       setUser(foundUser || null);
-  //       setLoading(false);
-  //     }, 300);
-  //   }
-  // }, [id]);
 
   useEffect(() => {
     api.get(`/api/user/${id}`)
