@@ -29,8 +29,14 @@ export const MENU_ITEMS = [
       icon: <MdSensors className="w-6 h-6" />,
       href: "/client/sensor",
     },
-    {
+     {
       id: 5,
+      name: "Sensor-Readings",
+      icon: <MdSensors className="w-6 h-6" />,
+      href: "/client/sensor-readings",
+    },
+    {
+      id: 6,
       name: "Settings",
       icon: <CiSettings className="w-6 h-6" />,
       href: "/client/settings",
