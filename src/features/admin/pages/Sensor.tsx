@@ -1,105 +1,82 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/axiosInstance";
+import { useParams, useNavigate } from "react-router-dom";
 import { AdminLayout } from "../../../layouts/admin";
-import { useEffect, useState } from "react";
-import { FaBatteryThreeQuarters, FaThermometerHalf, FaTint, FaWalking } from "react-icons/fa";
-import { HiStatusOnline, HiStatusOffline } from "react-icons/hi";
-import { format } from "date-fns";
+import { HiStatusOffline, HiStatusOnline } from "react-icons/hi";
 import { RxArrowLeft } from "react-icons/rx";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
-const sensors = [
-  {
-    id: 1,
-    type: "Temperature",
-    date: "2024-02-25",
-    customerName: "John Doe",
-    status: "Active",
-    battery: "85",
-    location: "Main Building",
-    lastReading: "24.5°C",
-    serialNumber: "TEMP-2024-001",
-  },
-  {
-    id: 2,
-    type: "Humidity",
-    date: "2024-02-24",
-    customerName: "Jane Smith",
-    status: "Inactive",
-    battery: "60",
-    location: "Warehouse",
-    lastReading: "65%",
-    serialNumber: "HUM-2024-042",
-  },
-  {
-    id: 3,
-    type: "Motion",
-    date: "2024-02-23",
-    customerName: "Alice Johnson",
-    status: "Active",
-    battery: "75",
-    location: "Office Floor 3",
-    lastReading: "Motion detected",
-    serialNumber: "MOT-2024-107",
-  },
-];
-
-interface SensorProp {
+export interface SensorTypeProp {
   id: number;
-  type: string;
-  date: string;
-  customerName: string;
+  name: string;
+  description: string;
+  unit: string;
+  protocol: string;
   status: string;
-  battery: string;
-  location?: string;
-  lastReading?: string;
-  serialNumber?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-const getSensorIcon = (type: string) => {
-  switch (type.toLowerCase()) {
-    case "temperature":
-      return <FaThermometerHalf className="text-red-500" />;
-    case "humidity":
-      return <FaTint className="text-blue-500" />;
-    case "motion":
-      return <FaWalking className="text-purple-500" />;
-    default:
-      return null;
-  }
-};
+export interface SensorProp {
+  id: number;
+  name: string;
+  status: string;
+  location?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  sensorType: SensorTypeProp;
+}
 
-const getBatteryColor = (level: string) => {
-  const batteryLevel = parseInt(level);
-  if (batteryLevel >= 75) return "bg-green-500";
-  if (batteryLevel >= 50) return "bg-yellow-500";
-  if (batteryLevel >= 25) return "bg-orange-500";
-  return "bg-red-500";
+const fetchSensorById = async (id: string): Promise<SensorProp> => {
+  const response = await api.get(`/api/sensor/${id}`);
+  return response.data;
 };
 
 const Sensor = () => {
-  const [sensorData, setSensorData] = useState<SensorProp[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { id } = useParams();
-  const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    // Simulate API call with a small delay
-    setLoading(true);
-    setTimeout(() => {
-      if (id) {
-        const data = sensors.filter((sensor) => sensor.id === parseInt(id));
-        setSensorData(data);
-      }
-      setLoading(false);
-    }, 600);
-  }, [id]);
+  const {
+    data: sensor,
+    isLoading,
+    isError,
+    error,
+  } = useQuery<SensorProp>({
+    queryKey: ["sensor", id],
+    queryFn: () => fetchSensorById(id!),
+    enabled: !!id,
+  });
+  console.warn("An error occured",error)
 
-  if (loading) {
+  if (isLoading) {
+    return (
+      <AdminLayout className={""}>
+        <div className="p-6 flex h-screen justify-center items-center bg-gray-50">
+          <div className="max-w-lg w-full space-y-6">
+            <Skeleton height={50} />
+            <Skeleton count={5} height={30} />
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (isError || !sensor) {
     return (
       <AdminLayout className="">
         <div className="p-6 flex h-screen justify-center items-center bg-gray-50">
-          <div className="flex flex-col items-center">
-            <div className="w-12 h-12 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
-            <p className="mt-4 text-gray-600">Loading sensor data...</p>
+          <div className="text-center max-w-md bg-white p-8 rounded shadow">
+            <h3 className="text-xl font-semibold text-gray-800">Sensor Not Found</h3>
+            <p className="mt-2 text-gray-500">
+              The sensor with ID <strong>#{id}</strong> could not be retrieved.
+            </p>
+            <button
+              onClick={() => navigate(-1)}
+              className="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            >
+              Go Back
+            </button>
           </div>
         </div>
       </AdminLayout>
@@ -108,138 +85,89 @@ const Sensor = () => {
 
   return (
     <AdminLayout className="">
-        <div className="bg-gray-50 py-4 px-10 flex items-center space-x-2 hover:text-blue-600" onClick={() => navigate("/admin/sensor")}>
+      <div
+        className="bg-gray-50 py-4 px-10 flex items-center space-x-2 hover:text-blue-600 cursor-pointer"
+        onClick={() => navigate("/admin/sensor")}
+      >
         <RxArrowLeft />
-            <p className="text-slate-500 hover:text-blue-600">Back To Sensors</p>
-        </div>
-      <div className="p-6 flex justify-center  bg-gray-50">
-        {sensorData.length > 0 ? (
-          sensorData.map((sensor) => (
-            <div
-              key={sensor.id}
-              className="bg-white shadow-xl rounded-lg overflow-hidden max-w-lg w-full"
-            >
-              {/* Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4 flex justify-between items-center">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-white bg-opacity-20 rounded-full">
-                    {getSensorIcon(sensor.type)}
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-white">
-                      {sensor.type} Sensor
-                    </h2>
-                    <p className="text-blue-100 text-sm">
-                      ID: {sensor.serialNumber || `#${sensor.id}`}
-                    </p>
-                  </div>
-                </div>
-                <div
-                  className={`px-3 py-1 rounded-full text-white text-sm font-medium flex items-center ${
-                    sensor.status.toLowerCase() === "active"
-                      ? "bg-green-500"
-                      : "bg-red-500"
-                  }`}
-                >
-                  {sensor.status === "Active" ? (
-                    <HiStatusOnline className="mr-1" />
-                  ) : (
-                    <HiStatusOffline className="mr-1" />
-                  )}
-                  {sensor.status}
-                </div>
-              </div>
+        <p className="text-slate-500 hover:text-blue-600">Back To Sensors</p>
+      </div>
 
-              {/* Main Content */}
-              <div className="px-6 py-4">
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Sensor Information</h3>
-                  <div className="bg-gray-50 rounded-lg p-4 grid grid-cols-2 gap-y-3 text-sm">
-                    <div className="text-gray-600">Customer:</div>
-                    <div className="text-gray-900 font-medium">{sensor.customerName}</div>
-                    
-                    <div className="text-gray-600">Location:</div>
-                    <div className="text-gray-900 font-medium">{sensor.location || "Not specified"}</div>
-                    
-                    <div className="text-gray-600">Installation Date:</div>
-                    <div className="text-gray-900 font-medium">
-                      {format(new Date(sensor.date), "PPP")}
-                    </div>
-                    
-                    <div className="text-gray-600">Last Reading:</div>
-                    <div className="text-gray-900 font-medium">{sensor.lastReading || "N/A"}</div>
-                  </div>
-                </div>
-
-                {/* Battery Section */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Battery Status</h3>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <FaBatteryThreeQuarters 
-                        className={`text-xl ${
-                          parseInt(sensor.battery) > 50 ? "text-green-500" : "text-orange-500"
-                        }`} 
-                      />
-                      <span className="text-gray-700 font-medium">Current Level: {sensor.battery}%</span>
-                    </div>
-                    <div className="relative h-4 w-full bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-500 ease-out ${getBatteryColor(sensor.battery)}`}
-                        style={{ width: `${sensor.battery}%` }}
-                      ></div>
-                    </div>
-                    <p className="mt-2 text-xs text-gray-500">
-                      {parseInt(sensor.battery) < 25 
-                        ? "Battery level critical! Please replace soon." 
-                        : parseInt(sensor.battery) < 50
-                          ? "Battery level low. Consider replacing in the next maintenance."
-                          : "Battery level good."}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
-                <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium text-sm">
-                  View Details
-                </button>
-                <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors font-medium text-sm">
-                  Edit Sensor
-                </button>
-              </div>
+      <div className="p-6 flex justify-center bg-gray-50">
+        <div className="bg-white shadow-xl rounded-lg overflow-hidden max-w-lg w-full">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4 flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-bold text-white">
+                {sensor.sensorType.name} Sensor
+              </h2>
+              <p className="text-blue-100 text-sm">ID: #{sensor.id}</p>
             </div>
-          ))
-        ) : (
-          <div className="bg-white shadow-lg rounded-lg p-8 max-w-md w-full text-center">
-            <svg
-              className="mx-auto h-16 w-16 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+            <span
+              className={`px-3 py-1 rounded-full text-white text-sm flex items-center ${
+                sensor.status.toLowerCase() === "active"
+                  ? "bg-green-500"
+                  : "bg-red-500"
+              }`}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <h3 className="mt-4 text-lg font-medium text-gray-900">No sensor found</h3>
-            <p className="mt-1 text-gray-500">
-              The sensor with ID #{id} could not be found or might have been removed.
-            </p>
-            <div className="mt-6">
-              <button
-                onClick={() => window.history.back()}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Go Back
-              </button>
-            </div>
+              {sensor.status === "Active" ? (
+                <HiStatusOnline className="mr-1" />
+              ) : (
+                <HiStatusOffline className="mr-1" />
+              )}
+              {sensor.status}
+            </span>
           </div>
-        )}
+
+          {/* Main Info */}
+          <div className="px-6 py-4 space-y-6">
+            <section>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                Sensor Details
+              </h3>
+              <div className="grid grid-cols-2 gap-y-3 text-sm bg-gray-50 p-4 rounded">
+                <div className="text-gray-600">Name:</div>
+                <div className="text-gray-900 font-medium">{sensor.name}</div>
+
+                <div className="text-gray-600">Location:</div>
+                <div className="text-gray-900 font-medium">
+                  {sensor.location || "Not specified"}
+                </div>
+
+                <div className="text-gray-600">Installed:</div>
+                <div className="text-gray-900 font-medium">
+                  {new Date(sensor.createdAt || "").toLocaleString()}
+                </div>
+
+                <div className="text-gray-600">Last Updated:</div>
+                <div className="text-gray-900 font-medium">
+                  {sensor.updatedAt
+                    ? new Date(sensor.updatedAt).toLocaleString()
+                    : "N/A"}
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                Battery Info
+              </h3>
+              <div className="bg-gray-50 p-4 rounded text-sm text-gray-600">
+                Battery level data is not available.
+              </div>
+            </section>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-between">
+            <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm font-medium">
+              View Details
+            </button>
+            <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition text-sm font-medium">
+              Edit Sensor
+            </button>
+          </div>
+        </div>
       </div>
     </AdminLayout>
   );

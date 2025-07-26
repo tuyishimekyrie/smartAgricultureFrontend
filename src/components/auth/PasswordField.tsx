@@ -1,6 +1,6 @@
 import { FaEye, FaEyeSlash, FaLock } from "react-icons/fa";
 import { motion } from "framer-motion";
-import { useForm } from "react-hook-form";
+import { UseFormRegisterReturn } from "react-hook-form";
 
 interface PasswordFieldProp {
   label: string;
@@ -8,6 +8,8 @@ interface PasswordFieldProp {
   toggleVisibility: () => void;
   placeholder: string;
   other: string;
+  name:string;
+  register: UseFormRegisterReturn;
 }
 
 const PasswordField = ({
@@ -15,9 +17,8 @@ const PasswordField = ({
   showPassword,
   toggleVisibility,
   placeholder,
-  other,
+  register,
 }: PasswordFieldProp) => {
-  const { register } = useForm();
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
@@ -41,7 +42,7 @@ const PasswordField = ({
           required
           placeholder={placeholder}
           className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all placeholder:text-gray-400 text-gray-800"
-          {...register(other)}
+          {...register}
         />
         <button
           type="button"

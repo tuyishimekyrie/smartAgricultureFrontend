@@ -4,10 +4,19 @@ import PaginationButton from "../components/PaginationButton";
 import SearchBar from "../components/SearchBar";
 import { usePagination } from "../hooks/usePagination";
 import { useSearch } from "../hooks/useSearch";
-import { ChevronLeft, ChevronRight, Filter, Users as UsersIcon, AlertCircle, RefreshCw } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Users as UsersIcon,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
 import UserActions from "../components/UserActions";
 import { api } from "@/lib/axiosInstance";
 import { toast, Toaster } from "sonner";
+import { Download } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export interface UserDataProp {
   id: number;
@@ -28,26 +37,27 @@ const useUsers = () => {
   const [state, setState] = useState<UsersState>({
     users: [],
     loading: true,
-    error: null
+    error: null,
   });
 
   const fetchUsers = useCallback(async () => {
     try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
+      setState((prev) => ({ ...prev, loading: true, error: null }));
       const response = await api.get("api/user/all");
-      setState(prev => ({ 
-        ...prev, 
-        users: response.data, 
-        loading: false 
+      setState((prev) => ({
+        ...prev,
+        users: response.data,
+        loading: false,
       }));
       toast.success("Users fetched successfully!");
     } catch (error) {
       console.error("Error fetching users:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to fetch users";
-      setState(prev => ({ 
-        ...prev, 
-        loading: false, 
-        error: errorMessage 
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to fetch users";
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: errorMessage,
       }));
       toast.error("Failed to fetch users");
     }
@@ -90,12 +100,20 @@ const UserRowSkeleton = ({ index }: { index: number }) => (
 );
 
 // Error message component
-const ErrorMessage = ({ error, onRetry }: { error: string; onRetry: () => void }) => (
+const ErrorMessage = ({
+  error,
+  onRetry,
+}: {
+  error: string;
+  onRetry: () => void;
+}) => (
   <tr>
     <td colSpan={6} className="px-6 py-12">
       <div className="flex flex-col items-center justify-center text-center">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Users</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          Error Loading Users
+        </h3>
         <p className="text-gray-500 mb-4">{error}</p>
         <button
           onClick={onRetry}
@@ -119,10 +137,9 @@ const EmptyState = ({ isFiltered }: { isFiltered: boolean }) => (
           {isFiltered ? "No users match your search" : "No users found"}
         </h3>
         <p className="text-gray-500">
-          {isFiltered 
-            ? "Try adjusting your search criteria" 
-            : "No users have been registered yet."
-          }
+          {isFiltered
+            ? "Try adjusting your search criteria"
+            : "No users have been registered yet."}
         </p>
       </div>
     </td>
@@ -134,19 +151,23 @@ const RoleBadge = ({ role }: { role: string }) => {
   const getRoleColor = (role: string) => {
     const normalizedRole = role.toLowerCase();
     switch (normalizedRole) {
-      case 'admin':
-        return 'bg-red-100 text-red-800';
-      case 'user':
-        return 'bg-green-100 text-green-800';
-      case 'moderator':
-        return 'bg-blue-100 text-blue-800';
+      case "admin":
+        return "bg-red-100 text-red-800";
+      case "user":
+        return "bg-green-100 text-green-800";
+      case "moderator":
+        return "bg-blue-100 text-blue-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   return (
-    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleColor(role)}`}>
+    <span
+      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleColor(
+        role
+      )}`}
+    >
       {role}
     </span>
   );
@@ -155,9 +176,9 @@ const RoleBadge = ({ role }: { role: string }) => {
 // User avatar component
 const UserAvatar = ({ username }: { username: string }) => {
   const initials = username
-    .split(' ')
-    .map(name => name.charAt(0))
-    .join('')
+    .split(" ")
+    .map((name) => name.charAt(0))
+    .join("")
     .toUpperCase()
     .slice(0, 2);
 
@@ -203,13 +224,41 @@ const UserRow = ({ user }: { user: UserDataProp }) => (
 const Users = () => {
   const { users, loading, error, refetch } = useUsers();
   const itemsPerPage = 5;
-  
+  const [selectedRole, setSelectedRole] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+
   // Search functionality
-  const { searchQuery, setSearchQuery, filteredItems } = useSearch(users, ['username', 'email', 'role']);
-  
+  const { searchQuery, setSearchQuery, filteredItems } = useSearch(users, [
+    "username",
+    "email",
+    "role",
+  ]);
+  const exportToPDF = (data: UserDataProp[]) => {
+    const doc = new jsPDF();
+    doc.text("User List", 14, 15);
+    autoTable(doc, {
+      startY: 20,
+      head: [["Username", "Email", "Role", "Status"]],
+      body: data.map((user) => [
+        user.username,
+        user.email,
+        user.role,
+        user.status,
+      ]),
+    });
+    doc.save("users.pdf");
+  };
+
   // Memoize filtered users to prevent unnecessary recalculations
-  const filteredUsersList = useMemo(() => filteredItems(), [filteredItems]);
-  
+  const filteredUsersList = useMemo(() => {
+    return filteredItems().filter((user) => {
+      const roleMatch = selectedRole === "all" || user.role === selectedRole;
+      const statusMatch =
+        selectedStatus === "all" || user.status === selectedStatus;
+      return roleMatch && statusMatch;
+    });
+  }, [filteredItems, selectedRole, selectedStatus]);
+
   // Pagination
   const pagination = usePagination(filteredUsersList, itemsPerPage);
   const currentUsers = pagination.getCurrentItems();
@@ -217,12 +266,15 @@ const Users = () => {
   // Reset pagination when search changes
   useEffect(() => {
     pagination.setCurrentPage(1);
-  }, [searchQuery, pagination.setCurrentPage,pagination]);
+  }, [searchQuery, pagination.setCurrentPage, pagination]);
 
   // Handler for search with debouncing would be better, but keeping simple for now
-  const handleSearchChange = useCallback((query: string) => {
-    setSearchQuery(query);
-  }, [setSearchQuery]);
+  const handleSearchChange = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+    },
+    [setSearchQuery]
+  );
 
   const renderTableContent = () => {
     if (loading) {
@@ -239,9 +291,7 @@ const Users = () => {
       return <EmptyState isFiltered={searchQuery.length > 0} />;
     }
 
-    return currentUsers.map((user) => (
-      <UserRow key={user.id} user={user} />
-    ));
+    return currentUsers.map((user) => <UserRow key={user.id} user={user} />);
   };
 
   return (
@@ -249,43 +299,53 @@ const Users = () => {
       <Toaster position="top-right" />
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-800">Users</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Manage user accounts and permissions
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <button 
-              className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              onClick={() => {/* TODO: Implement filter functionality */}}
-            >
-              <Filter size={16} />
-              <span>Filter</span>
-            </button>
-            <button
-              onClick={refetch}
-              disabled={loading}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50"
-              aria-label="Refresh users list"
-            >
-              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-              <span>Refresh</span>
-            </button>
-            <SearchBar onSearch={handleSearchChange} />
-          </div>
+        <div className="flex items-center gap-4">
+          <select
+            className="border rounded-md px-2 py-1 text-sm"
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value)}
+          >
+            <option value="all">All Roles</option>
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+            {/* Add other roles as needed */}
+          </select>
+          <button
+            className="flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+            onClick={() => exportToPDF(filteredUsersList)}
+          >
+            <Download size={16} />
+            <span>Export PDF</span>
+          </button>
+
+          <select
+            className="border rounded-md px-2 py-1 text-sm"
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+          >
+            <option value="all">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            {/* Add other statuses */}
+          </select>
+
+          <SearchBar onSearch={handleSearchChange} />
         </div>
 
         {/* Stats bar */}
         <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
           <div className="flex items-center justify-between text-sm text-gray-600">
             <span>
-              {loading ? "Loading..." : `${filteredUsersList.length} user${filteredUsersList.length !== 1 ? 's' : ''} found`}
+              {loading
+                ? "Loading..."
+                : `${filteredUsersList.length} user${
+                    filteredUsersList.length !== 1 ? "s" : ""
+                  } found`}
             </span>
             {searchQuery && (
               <span>
-                Searching for: <span className="font-medium">"{searchQuery}"</span>
+                Searching for:{" "}
+                <span className="font-medium">"{searchQuery}"</span>
               </span>
             )}
           </div>
@@ -332,8 +392,8 @@ const Users = () => {
             </div>
 
             <div className="flex items-center space-x-2">
-              <PaginationButton 
-                onClick={pagination.prevPage} 
+              <PaginationButton
+                onClick={pagination.prevPage}
                 disabled={pagination.currentPage === 1}
               >
                 <ChevronLeft size={16} />
@@ -341,7 +401,8 @@ const Users = () => {
               </PaginationButton>
 
               <div className="px-4 py-1 text-sm">
-                Page <span className="font-medium">{pagination.currentPage}</span> of{" "}
+                Page{" "}
+                <span className="font-medium">{pagination.currentPage}</span> of{" "}
                 <span className="font-medium">{pagination.totalPages}</span>
               </div>
 

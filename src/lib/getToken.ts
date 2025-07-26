@@ -1,5 +1,3 @@
-
-
 const getToken = (key: string) => {
   if (typeof window === 'undefined') {
     return null; 

@@ -20,13 +20,14 @@ interface MarkerData {
   position: LatLngTuple;
   title: string;
   description: string;
-  iconType: 'default' | 'restaurant' | 'hotel' | 'attraction';
+  iconType: "default" | "restaurant" | "hotel" | "attraction";
 }
 
 const MyMap = ({
   className = "",
-  center = [-1.955792181823006, 30.104155282768925],
-  zoom = 13
+  // center = [-1.955792181823006, 30.104155282768925],
+  center = [-2.3355641814324883, 28.781648569314893],
+  zoom = 13,
 }: MapProps) => {
   // Default icon
   const defaultIcon = icon({
@@ -48,7 +49,7 @@ const MyMap = ({
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
     shadowSize: [41, 41],
-    className: 'restaurant-marker', // You can use this with CSS to customize color
+    className: "restaurant-marker", // You can use this with CSS to customize color
   });
 
   // Hotel icon (blue)
@@ -60,7 +61,7 @@ const MyMap = ({
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
     shadowSize: [41, 41],
-    className: 'hotel-marker', // You can use this with CSS to customize color
+    className: "hotel-marker", // You can use this with CSS to customize color
   });
 
   // Attraction icon (green)
@@ -72,17 +73,17 @@ const MyMap = ({
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
     shadowSize: [41, 41],
-    className: 'attraction-marker', // You can use this with CSS to customize color
+    className: "attraction-marker", // You can use this with CSS to customize color
   });
 
   // Helper function to get the right icon based on type
   const getIconForType = (type: string) => {
     switch (type) {
-      case 'restaurant':
+      case "restaurant":
         return restaurantIcon;
-      case 'hotel':
+      case "hotel":
         return hotelIcon;
-      case 'attraction':
+      case "attraction":
         return attractionIcon;
       default:
         return defaultIcon;
@@ -95,30 +96,32 @@ const MyMap = ({
       position: center,
       title: "Main Location",
       description: "This is the main center location",
-      iconType: 'default'
+      iconType: "default",
     },
     {
-      position: [-1.9520, 30.1050],
+      position: [-1.952, 30.105],
       title: "Kigali Restaurant",
       description: "Popular local restaurant",
-      iconType: 'restaurant'
+      iconType: "restaurant",
     },
     {
-      position: [-1.9600, 30.1100],
+      position: [-1.96, 30.11],
       title: "City Hotel",
       description: "Luxury hotel in downtown",
-      iconType: 'hotel'
+      iconType: "hotel",
     },
     {
-      position: [-1.9500, 30.0990],
+      position: [-1.95, 30.099],
       title: "Tourist Attraction",
       description: "Famous tourist spot",
-      iconType: 'attraction'
-    }
+      iconType: "attraction",
+    },
   ];
 
   return (
-    <div className={`h-80 w-full rounded-lg overflow-hidden shadow-sm ${className}`}>
+    <div
+      className={`h-80 w-full rounded-lg overflow-hidden shadow-sm ${className}`}
+    >
       <MapContainer
         center={center}
         zoom={zoom}
@@ -129,17 +132,19 @@ const MyMap = ({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        
+
         {/* Render all markers */}
         {markers.map((marker, index) => (
-          <Marker 
-            key={index} 
-            position={marker.position} 
+          <Marker
+            key={index}
+            position={marker.position}
             icon={getIconForType(marker.iconType)}
           >
             <Popup className="rounded-md">
-              <strong>{marker.title}</strong><br />
-              {marker.description}<br />
+              <strong>{marker.title}</strong>
+              <br />
+              {marker.description}
+              <br />
               Lat: {marker.position[0].toFixed(6)},<br />
               Lng: {marker.position[1].toFixed(6)}
             </Popup>
