@@ -6,7 +6,7 @@ import image from "../../../assets/image.png";
 import { useForm } from "react-hook-form";
 import { jwtDecode } from "jwt-decode";
 // import { toast, Toaster } from "sonner";
-import {ToastContainer,toast} from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 
 interface LoginFormData {
@@ -53,7 +53,13 @@ const Login = () => {
           const decode = jwtDecode<DecodedToken>(token);
           console.log("decoded", decode);
 
-          if (decode.role === "ADMIN") navigate("/admin");
+          if (
+            decode.role === "ADMIN" ||
+            decode.role == "RESEARCHER" ||
+            decode.role == "GOVERNMENT_OFFICIAL" ||
+            decode.role == "LABORATORY_OFFICIAL"
+          )
+            navigate("/admin");
           else navigate("/client");
         } else {
           console.error("Login failed:", response.data.message);
@@ -72,7 +78,7 @@ const Login = () => {
   return (
     <div className="flex h-screen font-plus bg-gray-50">
       {/* <Toaster /> */}
-      <ToastContainer/>
+      <ToastContainer />
       {/* Left side - Image with overlay */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}

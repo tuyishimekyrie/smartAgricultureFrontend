@@ -30,14 +30,20 @@ export const MENU_ITEMS = [
       icon: <MdSensors className="w-6 h-6" />,
       href: "/admin/sensor",
     },
-    {
+     {
       id: 5,
+      name: "Sensor Types",
+      icon: <MdSensors className="w-6 h-6" />,
+      href: "/admin/sensor-type",
+    },
+    {
+      id: 6,
       name: "users",
       icon: <FaUsers className="w-6 h-6" />,
       href: "/admin/users",
     },
     {
-      id: 6,
+      id: 7,
       name: "Settings",
       icon: <CiSettings className="w-6 h-6" />,
       href: "/admin/settings",
