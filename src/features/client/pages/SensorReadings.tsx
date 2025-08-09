@@ -25,65 +25,26 @@ interface SensorReading extends SensorData {
   id: string;
 }
 
-// Custom hook for WebSocket connection with reconnection logic
+// Custom WebSocket hook
 const useWebSocket = (url: string) => {
   const [data, setData] = useState<SensorReading | null>(null);
-  const [connectionStatus, setConnectionStatus] = useState<
-    "connecting" | "connected" | "disconnected"
-  >("disconnected");
+  const [connectionStatus, setConnectionStatus] =
+    useState<"connecting" | "connected" | "disconnected">("disconnected");
   const [error, setError] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
-  console.log(url);
 
   const connect = useCallback(() => {
     try {
       setConnectionStatus("connecting");
       setError(null);
 
-      // For demo purposes, we'll simulate WebSocket with mock data
-      // Replace with: wsRef.current = new WebSocket(url);
+      wsRef.current = new WebSocket(url);
 
-      // Mock WebSocket simulation
-      const mockConnect = () => {
-        setConnectionStatus("connected");
-        reconnectAttempts.current = 0;
-
-        // Simulate receiving data every 2 seconds
-        const interval = setInterval(() => {
-          const mockData: SensorReading = {
-            id: `reading-${Date.now()}`,
-            timestamp: Date.now(),
-            moisture: Math.round((20 + Math.random() * 60) * 10) / 10,
-            temperature: Math.round((18 + Math.random() * 15) * 10) / 10,
-            ec: Math.round(800 + Math.random() * 400),
-            ph: Math.round((6 + Math.random() * 2) * 10) / 10,
-            nitrogen: Math.round(50 + Math.random() * 200),
-            phosphorus: Math.round(20 + Math.random() * 80),
-            potassium: Math.round(100 + Math.random() * 300),
-          };
-          setData(mockData);
-        }, 2000);
-
-        // Simulate occasional disconnection for demo
-        setTimeout(() => {
-          clearInterval(interval);
-          if (reconnectAttempts.current < maxReconnectAttempts) {
-            setConnectionStatus("disconnected");
-            reconnectAttempts.current++;
-            reconnectTimeoutRef.current = setTimeout(connect, 2000);
-          }
-        }, 30000);
-      };
-
-      setTimeout(mockConnect, 1000);
-
-      // Real WebSocket implementation would be:
-      /*
       wsRef.current.onopen = () => {
-        setConnectionStatus('connected');
+        setConnectionStatus("connected");
         reconnectAttempts.current = 0;
       };
 
@@ -92,48 +53,46 @@ const useWebSocket = (url: string) => {
           const sensorData = JSON.parse(event.data);
           setData({
             ...sensorData,
+            phosphorus: sensorData.phosphorous, // rename key
             id: `reading-${Date.now()}`,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           });
         } catch (err) {
-          console.error('Failed to parse sensor data:', err);
+          console.error("Failed to parse sensor data:", err);
         }
       };
 
       wsRef.current.onclose = () => {
-        setConnectionStatus('disconnected');
+        setConnectionStatus("disconnected");
         if (reconnectAttempts.current < maxReconnectAttempts) {
           reconnectAttempts.current++;
-          reconnectTimeoutRef.current = setTimeout(connect, 2000 * reconnectAttempts.current);
+          reconnectTimeoutRef.current = setTimeout(
+            connect,
+            2000 * reconnectAttempts.current
+          );
         }
       };
 
       wsRef.current.onerror = (error) => {
         setError(`WebSocket error: ${error}`);
-        setConnectionStatus('disconnected');
+        setConnectionStatus("disconnected");
       };
-      */
     } catch (err) {
       setError(`Connection failed: ${err}`);
       setConnectionStatus("disconnected");
     }
-  }, []);
+  }, [url]);
 
   useEffect(() => {
     connect();
 
     return () => {
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
-      if (wsRef.current) {
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        wsRef.current.close();
-      }
+      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+      if (wsRef.current) wsRef.current.close();
     };
   }, [connect]);
 
-  return { data, connectionStatus, error, reconnect: connect };
+  return { data, connectionStatus, error };
 };
 
 // Utility functions
@@ -152,11 +111,10 @@ const getStatusColor = (value: number, type: string): string => {
   return "text-green-500";
 };
 
-const formatValue = (value: number, decimals: number = 1): string => {
-  return value.toFixed(decimals);
-};
+const formatValue = (value: number, decimals: number = 1): string =>
+  value.toFixed(decimals);
 
-// Sensor card component
+// Sensor card
 const SensorCard: React.FC<{
   title: string;
   value: number;
@@ -190,21 +148,16 @@ const SensorCard: React.FC<{
   </div>
 );
 
-// Connection status indicator
+// Connection status
 const ConnectionStatus: React.FC<{ status: string; error?: string | null }> = ({
   status,
   error,
 }) => {
   const statusConfig = {
     connected: { color: "bg-green-500", text: "Connected", pulse: "" },
-    connecting: {
-      color: "bg-yellow-500",
-      text: "Connecting...",
-      pulse: "animate-pulse",
-    },
+    connecting: { color: "bg-yellow-500", text: "Connecting...", pulse: "animate-pulse" },
     disconnected: { color: "bg-red-500", text: "Disconnected", pulse: "" },
   };
-
   const config =
     statusConfig[status as keyof typeof statusConfig] ||
     statusConfig.disconnected;
@@ -218,20 +171,16 @@ const ConnectionStatus: React.FC<{ status: string; error?: string | null }> = ({
   );
 };
 
+const socketURI = import.meta.env.VITE_socketURI;
+
 // Main component
 const SensorReadings: React.FC = () => {
-  const { data, connectionStatus, error } = useWebSocket(
-    "ws://your-device-ip:port"
-  );
+  const { data, connectionStatus, error } = useWebSocket(socketURI);
   const [readings, setReadings] = useState<SensorReading[]>([]);
 
-  // Store readings history (last 10 readings)
   useEffect(() => {
     if (data) {
-      setReadings((prev) => {
-        const newReadings = [data, ...prev].slice(0, 10);
-        return newReadings;
-      });
+      setReadings((prev) => [data, ...prev].slice(0, 10));
     }
   }, [data]);
 
@@ -244,6 +193,7 @@ const SensorReadings: React.FC = () => {
     phosphorus: 0,
     potassium: 0,
     timestamp: Date.now(),
+    id: "",
   };
 
   const sensorConfigs = [
@@ -253,7 +203,6 @@ const SensorReadings: React.FC = () => {
       unit: "%",
       icon: <Droplets className="w-5 h-5 text-blue-600" />,
       status: getStatusColor(currentReading.moisture, "moisture"),
-      decimals: 1,
     },
     {
       title: "Temperature",
@@ -261,7 +210,6 @@ const SensorReadings: React.FC = () => {
       unit: "°C",
       icon: <Thermometer className="w-5 h-5 text-red-600" />,
       status: getStatusColor(currentReading.temperature, "temperature"),
-      decimals: 1,
     },
     {
       title: "Electrical Conductivity",
@@ -277,7 +225,6 @@ const SensorReadings: React.FC = () => {
       unit: "pH",
       icon: <TestTube className="w-5 h-5 text-purple-600" />,
       status: getStatusColor(currentReading.ph, "ph"),
-      decimals: 1,
     },
     {
       title: "Nitrogen",
@@ -306,7 +253,7 @@ const SensorReadings: React.FC = () => {
   ];
 
   return (
-    <ClientLayout className="">
+    <ClientLayout>
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -317,9 +264,7 @@ const SensorReadings: React.FC = () => {
                 Soil Sensor Dashboard
               </h1>
             </div>
-
             <ConnectionStatus status={connectionStatus} error={error} />
-
             {data && (
               <p className="text-sm text-gray-500">
                 Last updated:{" "}
@@ -330,8 +275,8 @@ const SensorReadings: React.FC = () => {
 
           {/* Sensor Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-            {sensorConfigs.map((sensor, index) => (
-              <SensorCard key={index} {...sensor} />
+            {sensorConfigs.map((sensor, i) => (
+              <SensorCard key={i} {...sensor} />
             ))}
           </div>
 
@@ -347,59 +292,38 @@ const SensorReadings: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Time
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Moisture (%)
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Temp (°C)
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        EC (μS/cm)
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        pH
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        N (mg/kg)
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        P (mg/kg)
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        K (mg/kg)
-                      </th>
+                      {[
+                        "Time",
+                        "Moisture (%)",
+                        "Temp (°C)",
+                        "EC (μS/cm)",
+                        "pH",
+                        "N (mg/kg)",
+                        "P (mg/kg)",
+                        "K (mg/kg)",
+                      ].map((head) => (
+                        <th
+                          key={head}
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          {head}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {readings.map((reading) => (
-                      <tr key={reading.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(reading.timestamp).toLocaleTimeString()}
+                    {readings.map((r) => (
+                      <tr key={r.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          {new Date(r.timestamp).toLocaleTimeString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {formatValue(reading.moisture)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {formatValue(reading.temperature)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {reading.ec}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {formatValue(reading.ph)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {reading.nitrogen}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {reading.phosphorus}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {reading.potassium}
-                        </td>
+                        <td className="px-6 py-4">{formatValue(r.moisture)}</td>
+                        <td className="px-6 py-4">{formatValue(r.temperature)}</td>
+                        <td className="px-6 py-4">{r.ec}</td>
+                        <td className="px-6 py-4">{formatValue(r.ph)}</td>
+                        <td className="px-6 py-4">{r.nitrogen}</td>
+                        <td className="px-6 py-4">{r.phosphorus}</td>
+                        <td className="px-6 py-4">{r.potassium}</td>
                       </tr>
                     ))}
                   </tbody>
