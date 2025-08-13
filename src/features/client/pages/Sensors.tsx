@@ -198,14 +198,15 @@ const useSensors = (userId: string | null) => {
       setLoading(true);
       setError(null);
       
-      const response = await api.get<ApiResponse<Sensor[]>>(`api/sensor/user/${userId}`);
+      const response = await api.get<ApiResponse<Sensor>>(`api/sensor/user/${userId}`);
       
       // Handle API response structure
       if (response.data.status === 'error') {
         throw new Error(response.data.message || 'Failed to fetch sensors');
       }
 
-      const sensorsData = response.data.data || [];
+      const sensorsData = response.data || [];
+      console.log(sensorsData)
       
       if (sensorsData.length === 0) {
         setSensors([]);
