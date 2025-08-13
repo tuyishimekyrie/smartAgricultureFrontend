@@ -8,86 +8,88 @@ import {
   Leaf,
 } from "lucide-react";
 import ClientLayout from "@/layouts/client/ClientLayout";
+import { v4 as uuidv4 } from "uuid";
 
-// Types for sensor data
+/* ---------- TYPES ---------- */
 interface SensorData {
   timestamp: number;
-  moisture: number; // %
-  temperature: number; // °C
-  ec: number; // μS/cm
-  ph: number; // pH
-  nitrogen: number; // mg/kg
-  phosphorus: number; // mg/kg
-  potassium: number; // mg/kg
+  moisture: number;
+  temperature: number;
+  ec: number;
+  ph: number;
+  nitrogen: number;
+  phosphorus: number;
+  potassium: number;
 }
 
 interface SensorReading extends SensorData {
   id: string;
 }
 
-// Custom WebSocket hook
+/* ---------- WEBSOCKET HOOK ---------- */
 const useWebSocket = (url: string) => {
   const [data, setData] = useState<SensorReading | null>(null);
-  const [connectionStatus, setConnectionStatus] =
-    useState<"connecting" | "connected" | "disconnected">("disconnected");
+  const [connectionStatus, setConnectionStatus] = useState<
+    "connecting" | "connected" | "disconnected" | "reconnecting"
+  >("disconnected");
   const [error, setError] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
-  const reconnectAttempts = useRef(0);
-  const maxReconnectAttempts = 5;
 
   const connect = useCallback(() => {
-    try {
-      setConnectionStatus("connecting");
-      setError(null);
+    if (!url) return;
 
+    setConnectionStatus((prev) =>
+      prev === "connected" ? "connected" : "connecting"
+    );
+    setError(null);
+
+    try {
       wsRef.current = new WebSocket(url);
 
-      wsRef.current.onopen = () => {
-        setConnectionStatus("connected");
-        reconnectAttempts.current = 0;
-      };
+      wsRef.current.onopen = () => setConnectionStatus("connected");
 
       wsRef.current.onmessage = (event) => {
         try {
           const sensorData = JSON.parse(event.data);
           setData({
-            ...sensorData,
-            phosphorus: sensorData.phosphorous, // rename key
-            id: `reading-${Date.now()}`,
+            moisture: sensorData.moisture ?? 0,
+            temperature: sensorData.temperature ?? 0,
+            ec: sensorData.ec ?? 0,
+            ph: sensorData.ph ?? 0,
+            nitrogen: sensorData.nitrogen ?? 0,
+            phosphorus: sensorData.phosphorus ?? sensorData.phosphorous ?? 0,
+            potassium: sensorData.potassium ?? 0,
+            id: `reading-${uuidv4()}`,
             timestamp: Date.now(),
           });
-        } catch (err) {
-          console.error("Failed to parse sensor data:", err);
+        } catch {
+          console.log("error")
         }
       };
 
       wsRef.current.onclose = () => {
-        setConnectionStatus("disconnected");
-        if (reconnectAttempts.current < maxReconnectAttempts) {
-          reconnectAttempts.current++;
-          reconnectTimeoutRef.current = setTimeout(
-            connect,
-            2000 * reconnectAttempts.current
-          );
-        }
+        setConnectionStatus("reconnecting");
+        reconnectTimeoutRef.current = setTimeout(connect, 2000);
       };
 
-      wsRef.current.onerror = (error) => {
-        setError(`WebSocket error: ${error}`);
-        setConnectionStatus("disconnected");
+      wsRef.current.onerror = () => {
+        setError("WebSocket error");
+        setConnectionStatus("reconnecting");
+        reconnectTimeoutRef.current = setTimeout(connect, 2000);
       };
     } catch (err) {
-      setError(`Connection failed: ${err}`);
-      setConnectionStatus("disconnected");
+      setError(String(err));
+      setConnectionStatus("reconnecting");
+      reconnectTimeoutRef.current = setTimeout(connect, 2000);
     }
   }, [url]);
 
   useEffect(() => {
     connect();
-
     return () => {
-      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+      if (reconnectTimeoutRef.current)
+        clearTimeout(reconnectTimeoutRef.current);
       if (wsRef.current) wsRef.current.close();
     };
   }, [connect]);
@@ -95,7 +97,7 @@ const useWebSocket = (url: string) => {
   return { data, connectionStatus, error };
 };
 
-// Utility functions
+/* ---------- HELPERS ---------- */
 const getStatusColor = (value: number, type: string): string => {
   const ranges = {
     moisture: { low: 30, high: 70 },
@@ -103,18 +105,17 @@ const getStatusColor = (value: number, type: string): string => {
     ph: { low: 6.0, high: 7.5 },
     ec: { low: 800, high: 1200 },
   };
-
   const range = ranges[type as keyof typeof ranges];
   if (!range) return "text-gray-600";
-
-  if (value < range.low || value > range.high) return "text-red-500";
-  return "text-green-500";
+  return value < range.low || value > range.high
+    ? "text-red-500"
+    : "text-green-500";
 };
 
-const formatValue = (value: number, decimals: number = 1): string =>
-  value.toFixed(decimals);
+const formatValue = (value: number, decimals = 1) =>
+  value == null ? "--" : value.toFixed(decimals);
 
-// Sensor card
+/* ---------- COMPONENTS ---------- */
 const SensorCard: React.FC<{
   title: string;
   value: number;
@@ -123,17 +124,17 @@ const SensorCard: React.FC<{
   status: string;
   decimals?: number;
 }> = ({ title, value, unit, icon, status, decimals = 1 }) => (
-  <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-    <div className="flex items-center justify-between mb-3">
-      <div className="flex items-center space-x-2">
-        <div className="p-2 bg-blue-50 rounded-lg">{icon}</div>
+  <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <div className="p-3 bg-blue-50 rounded-xl">{icon}</div>
         <h3 className="font-semibold text-gray-800">{title}</h3>
       </div>
       <div
         className={`w-3 h-3 rounded-full ${
-          status === "text-green-500"
+          status.includes("green")
             ? "bg-green-400"
-            : status === "text-red-500"
+            : status.includes("red")
             ? "bg-red-400"
             : "bg-gray-400"
         }`}
@@ -148,14 +149,22 @@ const SensorCard: React.FC<{
   </div>
 );
 
-// Connection status
 const ConnectionStatus: React.FC<{ status: string; error?: string | null }> = ({
   status,
   error,
 }) => {
   const statusConfig = {
     connected: { color: "bg-green-500", text: "Connected", pulse: "" },
-    connecting: { color: "bg-yellow-500", text: "Connecting...", pulse: "animate-pulse" },
+    connecting: {
+      color: "bg-yellow-500",
+      text: "Connecting...",
+      pulse: "animate-pulse",
+    },
+    reconnecting: {
+      color: "bg-orange-500",
+      text: "Reconnecting...",
+      pulse: "animate-pulse",
+    },
     disconnected: { color: "bg-red-500", text: "Disconnected", pulse: "" },
   };
   const config =
@@ -163,7 +172,7 @@ const ConnectionStatus: React.FC<{ status: string; error?: string | null }> = ({
     statusConfig.disconnected;
 
   return (
-    <div className="flex items-center space-x-2 mb-6">
+    <div className="flex items-center space-x-2 mb-4">
       <div className={`w-3 h-3 rounded-full ${config.color} ${config.pulse}`} />
       <span className="text-sm font-medium text-gray-600">{config.text}</span>
       {error && <span className="text-sm text-red-500">({error})</span>}
@@ -171,17 +180,15 @@ const ConnectionStatus: React.FC<{ status: string; error?: string | null }> = ({
   );
 };
 
+/* ---------- MAIN COMPONENT ---------- */
 const socketURI = import.meta.env.VITE_socketURI;
 
-// Main component
 const SensorReadings: React.FC = () => {
   const { data, connectionStatus, error } = useWebSocket(socketURI);
   const [readings, setReadings] = useState<SensorReading[]>([]);
 
   useEffect(() => {
-    if (data) {
-      setReadings((prev) => [data, ...prev].slice(0, 10));
-    }
+    if (data) setReadings((prev) => [data, ...prev].slice(0, 10));
   }, [data]);
 
   const currentReading = data || {
@@ -193,7 +200,7 @@ const SensorReadings: React.FC = () => {
     phosphorus: 0,
     potassium: 0,
     timestamp: Date.now(),
-    id: "",
+    id: uuidv4(),
   };
 
   const sensorConfigs = [
@@ -256,9 +263,9 @@ const SensorReadings: React.FC = () => {
     <ClientLayout>
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
+          {/* HEADER */}
           <div className="mb-8">
-            <div className="flex items-center space-x-3 mb-4">
+            <div className="flex items-center space-x-3 mb-2">
               <Activity className="w-8 h-8 text-blue-600" />
               <h1 className="text-3xl font-bold text-gray-900">
                 Soil Sensor Dashboard
@@ -273,24 +280,24 @@ const SensorReadings: React.FC = () => {
             )}
           </div>
 
-          {/* Sensor Grid */}
+          {/* SENSOR CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
             {sensorConfigs.map((sensor, i) => (
               <SensorCard key={i} {...sensor} />
             ))}
           </div>
 
-          {/* Recent Readings Table */}
+          {/* RECENT READINGS TABLE */}
           {readings.length > 0 && (
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200">
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
                 <h2 className="text-xl font-semibold text-gray-800">
                   Recent Readings
                 </h2>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
+              <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-100 sticky top-0">
                     <tr>
                       {[
                         "Time",
@@ -304,26 +311,31 @@ const SensorReadings: React.FC = () => {
                       ].map((head) => (
                         <th
                           key={head}
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          className="px-6 py-3 text-left font-medium text-gray-600 uppercase tracking-wider"
                         >
                           {head}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-100">
                     {readings.map((r) => (
-                      <tr key={r.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                      <tr
+                        key={r.id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-6 py-3 text-gray-500">
                           {new Date(r.timestamp).toLocaleTimeString()}
                         </td>
-                        <td className="px-6 py-4">{formatValue(r.moisture)}</td>
-                        <td className="px-6 py-4">{formatValue(r.temperature)}</td>
-                        <td className="px-6 py-4">{r.ec}</td>
-                        <td className="px-6 py-4">{formatValue(r.ph)}</td>
-                        <td className="px-6 py-4">{r.nitrogen}</td>
-                        <td className="px-6 py-4">{r.phosphorus}</td>
-                        <td className="px-6 py-4">{r.potassium}</td>
+                        <td className="px-6 py-3">{formatValue(r.moisture)}</td>
+                        <td className="px-6 py-3">
+                          {formatValue(r.temperature)}
+                        </td>
+                        <td className="px-6 py-3">{r.ec}</td>
+                        <td className="px-6 py-3">{formatValue(r.ph)}</td>
+                        <td className="px-6 py-3">{r.nitrogen}</td>
+                        <td className="px-6 py-3">{r.phosphorus}</td>
+                        <td className="px-6 py-3">{r.potassium}</td>
                       </tr>
                     ))}
                   </tbody>
